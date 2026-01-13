@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday! 🎂</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #ff2e63;
+            --secondary: #08d9d6;
+            --bg: #1a1a2e;
+            --text: #eaeaea;
+            --box-color: #ff2e63;
+            --ribbon-color: #08d9d6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden; /* Ngăn cuộn trang */
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            perspective: 1000px; /* Cho hiệu ứng 3D */
+        }
+
+        /* --- Canvas Background --- */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* --- 3D Gift Box --- */
+        .container {
+            position: relative;
+            z-index: 10;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 1s ease;
+        }
+
+        .gift-box {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            transform-style: preserve-3d;
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.5s;
+        }
+
+        .gift-box:hover {
+            transform: scale(1.1) rotateY(10deg);
+        }
+
+        .gift-box.open {
+            animation: openBox 1s forwards;
+        }
+
+        /* Các mặt của hộp */
+        .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--box-color), #d61c4e);
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 0 20px rgba(255, 46, 99, 0.5);
+        }
+
+        .front  { transform: translateZ(50px); }
+        .back   { transform: rotateY(180deg) translateZ(50px); }
+        .left   { transform: rotateY(-90deg) translateZ(50px); }
+        .right  { transform: rotateY(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        .top    { 
+            transform: rotateX(90deg) translateZ(50px); 
+            background: var(--box-color);
+            transform-origin: top;
+            transition: transform 1s;
+        }
+        
+        /* Nắp hộp mở ra */
+        .gift-box.open .top {
+            transform: rotateX(210deg) translateZ(50px);
+        }
+
+        /* Ruy băng */
+        .ribbon {
+            position: absolute;
+            background: var(--ribbon-color);
+            box-shadow: 0 0 10px var(--ribbon-color);
+        }
+        .ribbon-h { width: 100%; height: 20px; top: 40px; }
+        .ribbon-v { width: 20px; height: 100%; left: 40px; }
+
+        /* --- Lời chúc (Card) --- */
+        .card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 90%;
+            max-width: 600px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+            opacity: 0;
+            transition: all 1s ease;
+            z-index: 20;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .card.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .card h1 {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, #08d9d6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(8, 217, 214, 0.5);
+        }
+
+        .card p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #ddd;
+            min-height: 100px; /* Giữ chỗ cho text typing */
+        }
+
+        .btn-restart {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: linear-gradient(45deg, var(--primary), #d61c4e);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(255, 46, 99, 0.4);
+            transition: transform 0.3s;
+        }
+
+        .btn-restart:hover { transform: scale(1.05); }
+
+        /* Animation Keyframes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateX(-10deg) rotateY(20deg); }
+            50% { transform: translateY(-20px) rotateX(-10deg) rotateY(20deg); }
+        }
+
+        @keyframes openBox {
+            0% { transform: scale(1) rotateX(-10deg) rotateY(20deg); }
+            100% { transform: scale(0) rotateX(-10deg) rotateY(20deg); opacity: 0; }
+        }
+
+        .hint {
+            position: absolute;
+            bottom: -50px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .card h1 { font-size: 2.5rem; }
+            .gift-box { width: 80px; height: 80px; }
+            .face { width: 80px; height: 80px; }
+            .front { transform: translateZ(40px); }
+            .back { transform: rotateY(180deg) translateZ(40px); }
+            .left { transform: rotateY(-90deg) translateZ(40px); }
+            .right { transform: rotateY(90deg) translateZ(40px); }
+            .bottom { transform: rotateX(-90deg) translateZ(40px); }
+            .top { transform: rotateX(90deg) translateZ(40px); }
+            .ribbon-h { top: 30px; }
+            .ribbon-v { left: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas"></canvas>
+
+    <div class="container" id="giftContainer">
+        <div class="gift-box" id="giftBox">
+            <div class="face front"><div class="ribbon ribbon-h"></div><div class="ribbon ribbon-v"></div></div>
+            <div class="face back"><div class="ribbon ribbon-h"></div><div class="ribbon ribbon-v"></div></div>
+            <div class="face left"><div class="ribbon ribbon-h"></div><div class="ribbon ribbon-v"></div></div>
+            <div class="face right"><div class="ribbon ribbon-h"></div><div class="ribbon ribbon-v"></div></div>
+            <div class="face top"><div class="ribbon ribbon-h"></div><div class="ribbon ribbon-v"></div></div>
+            <div class="face bottom"></div>
+        </div>
+        <div class="hint">Chạm vào hộp quà để mở 🎁</div>
+    </div>
+
+    <div class="card" id="card">
+        <h1 id="greeting">Happy Birthday!</h1>
+        <p id="message"></p>
+        <button class="btn-restart" onclick="location.reload()">Replay ↺</button>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="https://www.bensound.com/bensound-music/bensound-ukulele.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="popSound">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.m4a" type="audio/mp4">
+    </audio>
+
+    <script>
+        /**
+         * ⚙️ CẤU HÌNH (Sửa thông tin tại đây)
+         */
+        const CONFIG = {
+            name: "Người Thương", // Tên người nhận
+            wishes: [
+                "Chúc mừng sinh nhật em! 🎂",
+                "Chúc tuổi mới luôn rạng rỡ như ánh mặt trời,",
+                "Ngập tràn niềm vui và may mắn.",
+                "Mong mọi điều ước của em đều thành hiện thực.",
+                "Happy Birthday! ❤️"
+            ],
+            typeSpeed: 50, // Tốc độ gõ chữ (ms)
+        };
+
+        // --- CORE LOGIC ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const giftBox = document.getElementById('giftBox');
+        const card = document.getElementById('card');
+        const greeting = document.getElementById('greeting');
+        const messageEl = document.getElementById('message');
+        const bgMusic = document.getElementById('bgMusic');
+        const popSound = document.getElementById('popSound');
+
+        // Resize Canvas
+        let width, height;
+        function resize() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- FIREWORKS SYSTEM (Pháo hoa) ---
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                // Vận tốc ngẫu nhiên bung ra
+                this.vx = (Math.random() - 0.5) * 8; 
+                this.vy = (Math.random() - 0.5) * 8;
+                this.life = 100; // Thời gian sống
+                this.alpha = 1;
+            }
+
+            draw() {
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; // Trọng lực nhẹ
+                this.life -= 1;
+                this.alpha -= 0.01;
+            }
+        }
+
+        let particles = [];
+        function createFirework(x, y) {
+            const colors = ['#ff2e63', '#08d9d6', '#eaeaea', '#ffd700', '#ff00ff'];
+            for (let i = 0; i < 50; i++) {
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, width, height); // Xóa canvas cũ
+            // Vẽ nền sao lấp lánh nhẹ
+            ctx.fillStyle = 'rgba(255, 255, 255, ' + (Math.random() * 0.01) + ')';
+            ctx.fillRect(Math.random() * width, Math.random() * height, 2, 2);
+
+            particles.forEach((p, index) => {
+                p.draw();
+                p.update();
+                if (p.life <= 0) particles.splice(index, 1);
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        animateParticles(); // Chạy loop ngay từ đầu (để hiện sao)
+
+        // --- TYPING EFFECT ---
+        let wishIndex = 0;
+        let charIndex = 0;
+        
+        function typeWriter() {
+            if (wishIndex < CONFIG.wishes.length) {
+                const currentLine = CONFIG.wishes[wishIndex];
+                
+                if (charIndex < currentLine.length) {
+                    messageEl.innerHTML += currentLine.charAt(charIndex);
+                    charIndex++;
+                    setTimeout(typeWriter, CONFIG.typeSpeed);
+                } else {
+                    messageEl.innerHTML += "<br>"; // Xuống dòng khi hết câu
+                    wishIndex++;
+                    charIndex = 0;
+                    setTimeout(typeWriter, 500); // Nghỉ một chút trước khi qua câu mới
+                }
+            }
+        }
+
+        // --- INTERACTION ---
+        giftBox.addEventListener('click', () => {
+            // 1. Hiệu ứng mở hộp
+            giftBox.classList.add('open');
+            popSound.play().catch(() => {}); // Chống lỗi nếu trình duyệt chặn
+            
+            // 2. Ẩn hộp sau khi mở
+            setTimeout(() => {
+                document.getElementById('giftContainer').style.display = 'none';
+            }, 800);
+
+            // 3. Bắn pháo hoa
+            createFirework(width / 2, height / 2); // Bắn giữa màn hình
+            
+            // Bắn thêm vài quả xung quanh sau đó
+            setTimeout(() => createFirework(width / 3, height / 3), 300);
+            setTimeout(() => createFirework(width / 1.5, height / 1.5), 600);
+            
+            // 4. Phát nhạc
+            bgMusic.volume = 0.5;
+            bgMusic.play();
+
+            // 5. Hiện lời chúc sau 1s
+            setTimeout(() => {
+                card.classList.add('active');
+                // Cập nhật tên
+                greeting.innerText = `Happy Birthday ${CONFIG.name}! 🎉`;
+                // Bắt đầu gõ chữ
+                typeWriter();
+            }, 1000);
+        });
+
+        // Click chuột bất kỳ đâu để bắn pháo hoa (sau khi mở quà)
+        document.addEventListener('click', (e) => {
+            if (card.classList.contains('active')) {
+                createFirework(e.clientX, e.clientY);
+            }
+        });
+
+    </script>
+</body>
+</html>
